@@ -17,6 +17,7 @@ Before starting, ensure you have the following:
 
 ### Hardware Setup
 
+- You also need a mango. hehe ;) 
 - Power STM32F407G-DISC1 board up, by connecting it to your PC via USB plug.
 - ECG sensor is powered up by both 3V/5V, so power the sensor board to its corresponding voltages on the STM32 board via jumper wires.
 - Connect the SPI communication lines (MISO, MOSI, SCK, and CS) between the STM32F407G-DISC1 board and the ECG Click 2 sensor.
@@ -37,11 +38,7 @@ Before starting, ensure you have the following:
   
 ### Documentation
 
-- [ECG2 Click Sensor Website](https://www.mikroe.com/ecg-2-click)
-
-- [ECG2 Click Sensor Datasheet](https://www.ti.com/lit/ds/symlink/ads1194.pdf)
-
-- [STM32F407G-DISC1 Website](https://www.st.com/en/evaluation-tools/stm32f4discovery.html)
+	Find it yourself fool. 
 
  ### Code Implementation
 
