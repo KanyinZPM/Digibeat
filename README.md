@@ -178,7 +178,7 @@ These are the variables you need to set:
   double time_value = 0.0;
   HAL_Delay(300);
 ```
-And then
+TODO :: And then
 
 
 
