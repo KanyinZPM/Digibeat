@@ -75,10 +75,10 @@ const uint8_t ECG2_START_CONVERSION           = 0x08;
 const uint8_t ECG2_RESET_CMD                  = 0x06;
 const uint8_t ECG2_STOP_CONVERSION            = 0x0A;
 const uint8_t ECG2_STOP_DATA_CONT_MODE        = 0x11;
-const uint8_t ECG2_READ_DATA_CMD 			  = 0x12;
+const uint8_t ECG2_READ_DATA_CMD 			          = 0x12;
 const uint8_t ECG2_ENABLE_READ_DATA_CONT_MODE = 0x10;
 const uint8_t ECG2_SPI_CMD_WRITE              = 0x40;
-const uint8_t ECG2_SPI_CMD_READ   			  = 0x20;
+const uint8_t ECG2_SPI_CMD_READ   			         = 0x20;
 
 // specific ADC constants
 const double channel_gain = 20.00; // amplifier gain
