@@ -43,7 +43,8 @@ Before starting, ensure you have the following:
 
 - [STM32F407G-DISC1 Website](https://www.st.com/en/evaluation-tools/stm32f4discovery.html)
 
- ### Code Implementation
+
+### Code Implementation
 
 - Open the main code file
 
@@ -70,16 +71,16 @@ void MX_USB_HOST_Process(void);
 
 ```
 
-  const uint8_t ECG2_WAKEUP_CMD                 = 0x02;
+    const uint8_t ECG2_WAKEUP_CMD                 = 0x02;
 	const uint8_t ECG2_STANDBY_CMD                = 0x04;
 	const uint8_t ECG2_START_CONVERSION           = 0x08;
 	const uint8_t ECG2_RESET_CMD                  = 0x06;
 	const uint8_t ECG2_STOP_CONVERSION            = 0x0A;
 	const uint8_t ECG2_STOP_DATA_CONT_MODE        = 0x11;
-	const uint8_t ECG2_READ_DATA_CMD 			        = 0x12;
+	const uint8_t ECG2_READ_DATA_CMD 			  = 0x12;
 	const uint8_t ECG2_ENABLE_READ_DATA_CONT_MODE = 0x10;
 	const uint8_t ECG2_SPI_CMD_WRITE              = 0x40;
-	const uint8_t ECG2_SPI_CMD_READ   			      = 0x20;
+	const uint8_t ECG2_SPI_CMD_READ   			  = 0x20;
 ```
 - And now you will input the needed functions shown here below please read the commented lines to understand the purpose of each function.
 ```
@@ -96,7 +97,7 @@ void MX_USB_HOST_Process(void);
 	double channelVoltage4; // channel 4 millivolts
 
 	// Function for sending commands
-	void sendCommand(uint8_t command) {
+	void Send_Command(uint8_t command) {
 	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET); // Select chip
 	  HAL_Delay(1);
 	  HAL_SPI_Transmit(&hspi1, &command, 1, HAL_MAX_DELAY); // Send command
@@ -107,7 +108,7 @@ void MX_USB_HOST_Process(void);
 	  //Function for writing register values
 	}
 
-	void writeOneRegister(unsigned char regAddress, unsigned char regValue) {
+	void Write_One_Register(unsigned char regAddress, unsigned char regValue) {
 	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET); // select chip
 	  HAL_Delay(1);
 	  uint8_t txData[3];
@@ -121,7 +122,7 @@ void MX_USB_HOST_Process(void);
 	}
 
     //Function to read register status for debugging purposes
-	uint8_t readRegisterStatus(uint8_t regAddress) {
+	uint8_t Read_Register_Status(uint8_t regAddress) {
 		uint8_t returnData = 0;
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET); // select chip
 		HAL_Delay(1);
@@ -151,7 +152,7 @@ void MX_USB_HOST_Process(void);
 	// arguments:
 	// sampleArray - one sample data from ADS1194, placeInSample - where is in sampla channel data is
 	// refV - reference voltage in millivolts, gain channel gain, offsetVoltage - channnel offset
-	double readAnalogChannel( unsigned char *sampleArray, unsigned short placeInSample, double refV, double gain) {
+	double Read_Analog_Channel( unsigned char *sampleArray, unsigned short placeInSample, double refV, double gain) {
 	  int ADCvalue = sampleArray[placeInSample];
 	  ADCvalue <<= 8;
 	  ADCvalue |= sampleArray[placeInSample + 1];
@@ -161,15 +162,119 @@ void MX_USB_HOST_Process(void);
 	
   //Function to generate SPI Clock 
 	unsigned short SPI1_Read(unsigned short dummyData) {
-  uint8_t receivedData = 0;
 
- // Send the dummy data to generate the clock
- HAL_SPI_TransmitReceive(&hspi1, (uint8_t*)&dummyData, &receivedData, 1, HAL_MAX_DELAY);
- return receivedData;
+
+	    uint8_t receivedData = 0;
+
+
+	    // Send the dummy data to generate the clock
+	    HAL_SPI_TransmitReceive(&hspi1, (uint8_t*)&dummyData, &receivedData, 1, HAL_MAX_DELAY);
+
+	    return receivedData;
 	}
 ```
-- Now you are in the  main function "int (main) void after /* Initialize all configured peripherals */
-These are the variables you need to set:
+And then the following ECG_Setup functoin is defined. As this is used to write operation commands into the bit fields of the sensor registers to enable continous read mode. There is also an option for the commands that read the voltage offset of the sensor.
+```
+void ECG_Setup()
+{
+  //uint8_t temp_ctr;
+  // set configuration registers
+  // setting configuration register 1
+  Write_One_Register(0x01,0x06); // no clk output and sample rate is 125SPS, ECG data will be out every 8 millisecond
+  // setting configuration register 2
+  Write_One_Register(0x02,0x20); //no test signal, default value
+  // setting configuration register 3
+  Write_One_Register(0x03,0xCC); // RDL generate internal and enable, reference voltage is 2.4V, RLD signal source is internal
+  // setting LOFF register
+  Write_One_Register(0x04,0xF3);  // lead-off is in DC mode and using pull up and down resistors, comparators thresholds are set to 70% and 30%
+  // channel 1 settings register
+  /* Write_One_Register(0x05,0x01); // channel is on and gain is 12, input shorted for offset measurements
+  // channel 2 settings register
+  Write_One_Register(0x06,0x01); // channel is on and gain is 12, input shorted for offset measurements
+  // channel 3 settings register
+  Write_One_Register(0x07,0x01); // channel is on and gain is 12, input shorted for offset measurements
+  // channel 4 settings register
+  Write_One_Register(0x08,0x01); // channel is on and gain is 12, input shorted for offset measurements*/
+  // channel 1 settings register
+  Write_One_Register(0x05,0x60); // channel is on and gain is 12, normal electrode input
+  // channel 2 settings register
+  Write_One_Register(0x06,0x60); // channel is on and gain is 12, normal electrode input
+  // channel 3 settings register
+  Write_One_Register(0x07,0x60); // channel is on and gain is 12, normal electrode input
+  // channel 4 settings register
+  Write_One_Register(0x08,0x64); // channel is on and gain is 12, temperature sensor
+  // RDL_SENSP
+  Write_One_Register(0x0D,0x02); // channels 2 is use for RDL
+  // RDL_SENSN
+  Write_One_Register(0x0E,0x02); // channels 2 is use for RDL
+  // LOFF_SENSP
+  Write_One_Register(0x0F,0x05); // channel 3P use pull-up resistor for detect LL lead-off, channel 1P use pull-up resistor for detect LA lead-off,
+  // LOFF_SENSN
+  Write_One_Register(0x10,0x02); // channel 2N use pull-down resistor for detect RA lead-off
+  // LOFF_FLIP
+  Write_One_Register(0x11,0x00); // no flip
+  // GPIO settings
+  Write_One_Register(0x14,0x0F); // GPIO are not use, default value
+  // PACE settings
+  Write_One_Register(0x15,0x00); // PACE not use, default value
+  // setting configuration register 4
+  Write_One_Register(0x17,0x02); // continuous conversion mode, WCT no connect to RLD, LOFF comparators enable
+  /*
+  // activate conversion to read and calculate offset
+  sendCommand(ECG2_START_CONVERSION ); // send START command
+  HAL_Delay(2);
+  sendCommand(ECG2_READ_DATA_CMD); // enable read data once
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET); // chip select
+  HAL_Delay(1);
+  while (HAL_GPIO_ReadPin(DRDY_GPIO_Port, DRDY_Pin) == 1) {} // Wait for ADS1194 device to prepare output data.
+  HAL_Delay(1);
+  for (temp_ctr = 0; temp_ctr < NUM_OF_BYTES_IN_SAMPLE; temp_ctr++) {ecg_data_sample[temp_ctr] = SPI_Read(0);}   // read ADS1194 output data, one sample
+  // Calculate Voltage Offset
+  // voltage LA RA
+  channel1_voltage_offset = calculateChannel(ecg_data_sample, 3, v_ref, channel_gain, 0);
+  // voltage LL RA - channel 2 is usually used for simple ECG
+  channel2_voltage_offset = calculateChannel(ecg_data_sample, 5, v_ref, channel_gain, 0);
+  // voltage LL LA
+  channel3_voltage_offset = calculateChannel(ecg_data_sample, 7, v_ref, channel_gain, 0);
+  // voltage from temperature sensor
+  channel4_voltage_offset = calculateChannel(ecg_data_sample, 9, v_ref, channel_gain, 0);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_SET);
+  HAL_Delay(1);
+  //stop conversion for offset
+  sendCommand(ECG2_STOP_CONVERSION); // send STOP command
+  HAL_Delay(1);
+  sendCommand(ECG2_STOP_DATA_CONT_MODE ); // SDATAC mode
+  // activate conversion
+  // channel 1 settings register
+  Write_One_Register(0x05,0x60); // channel is on and gain is 12, normal electrode input
+  // channel 2 settings register
+  Write_One_Register(0x06,0x60); // channel is on and gain is 12, normal electrode input
+  // channel 3 settings register
+  Write_One_Register(0x07,0x60); // channel is on and gain is 12, normal electrode input
+  // channel 4 settings register
+  Write_One_Register(0x08,0x64); // channel is on and gain is 12, temperature sensor*/
+
+  Send_Command(ECG2_START_CONVERSION ); // send START command
+  HAL_Delay(1);
+  Send_Command(ECG2_ENABLE_READ_DATA_CONT_MODE); // enable read data in continuous mode
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET); // chip select
+  HAL_Delay(1);
+}
+```
+
+```
+- Now you are in the  main function "int (main) void) after:
+ ``` 
+ /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_I2C1_Init();
+  MX_I2S3_Init();
+  MX_SPI1_Init();
+  MX_USB_HOST_Init();
+  MX_USART2_UART_Init();
+
+```
+These are the variables you need to set 
 ```
 
   uint16_t i = 0;
@@ -178,7 +283,59 @@ These are the variables you need to set:
   double time_value = 0.0;
   HAL_Delay(300);
 ```
-TODO :: And then
+And then now the most important part. Now you need to read the voltage values on the ECG.
+
+```
+
+HAL_GPIO_WritePin(PWD_GPIO_Port, PWD_Pin, GPIO_PIN_SET); //ECG2 Powered up
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_SET); //CS chip should be high by default
+  HAL_GPIO_WritePin(RST_GPIO_Port, RST_Pin, GPIO_PIN_RESET); // pull RESET bit low for 18 CLK to RESET ECG device
+
+  // issue RESET pulse
+  HAL_GPIO_WritePin(RST_GPIO_Port, RST_Pin, GPIO_PIN_RESET);//0
+  HAL_Delay(1);
+  HAL_GPIO_WritePin(RST_GPIO_Port, RST_Pin, GPIO_PIN_SET);//1
+  HAL_Delay(1000);
+  // device is in RDATAC mode, set it to SDATAC mode to edit registers
+  Send_Command(ECG2_STOP_DATA_CONT_MODE);
+  HAL_Delay(1000);
+
+  ECG_Setup();
+  ```
+  The above code triggers certain GPIOS of the ECG in read mode. And a Reset pulse of the Reset pin is issued as per the guidelines of the datasheet. And finally you call the ECG_Setup funtion which sets all the operation commands to specific registers for continous read mode.
+
+And finally you are in the running loop. The while loop. And here you will read the voltage values from the ECG viz. channel 2 as this is the channel used for reading ECG.
+
+```
+while (1)
+  {
+    /* USER CODE END WHILE */
+    MX_USB_HOST_Process();
+
+    /* USER CODE BEGIN 3 */
+    while (HAL_GPIO_ReadPin(DRDY_GPIO_Port, DRDY_Pin) == 1) {}
+    HAL_Delay(1);
+    for (i = 0; i < NUM_OF_BYTES_IN_SAMPLE; i++) {ecg_data_sample[i] = SPI_Read(0);} // read ADS1194 output data, one sample
+    time_value += 8.0; // increment time value
+    // calculate input voltage
+    // voltage LA RA
+    channel1_voltage = Read_Analog_Channel(ecg_data_sample, 3, v_ref, channel_gain);
+    // voltage LL RA - channel 2 is usually used for simple ECG
+    channel2_voltage = Read_Analog_Channel(ecg_data_sample, 5, v_ref, channel_gain);
+    sprintf(final_string, "%.2f", channel2_voltage); // convert values to string and send to MikroPlot
+    strcat(final_string, ",");
+    sprintf(time_string, "%.2f", time_value);
+    strcat(final_string, time_string);
+    HAL_UART_Transmit(&huart2, (uint8_t *)final_string, strlen(final_string), HAL_MAX_DELAY);
+    char str[2] = "\r\n";
+    HAL_UART_Transmit(&huart2, (uint8_t *)str, 2, HAL_MAX_DELAY);
+    // voltage LL LA
+    channel3_voltage = Read_Analog_Channel(ecg_data_sample, 7, v_ref, channel_gain);
+     // voltage from temperature sensor
+    channel4_voltage = Read_Analog_Channel(ecg_data_sample, 9, v_ref, channel_gain);
+ }
+}
+```
 
 
 
