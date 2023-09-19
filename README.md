@@ -173,7 +173,7 @@ void MX_USB_HOST_Process(void);
 	    return receivedData;
 	}
 ```
-And then the following ECG_Setup functoin is defined. As this is used to write operation commands into the bit fields of the sensor registers to enable continous read mode. There is also an option for the commands that read the voltage offset of the sensor.
+And then the following ECG_Setup function is defined. As this is used to write operation commands into the bit fields of the sensor registers to enable continous read mode. There is also an option for the commands that read the voltage offset of the sensor.
 ```
 void ECG_Setup()
 {
@@ -261,8 +261,9 @@ void ECG_Setup()
   HAL_Delay(1);
 }
 ```
- Now you are in the  main function "int (main) void) after:
- ``` 
+Now you are in the  main function "int (main) void) after:
+
+```
  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
