@@ -261,9 +261,7 @@ void ECG_Setup()
   HAL_Delay(1);
 }
 ```
-
-```
-- Now you are in the  main function "int (main) void) after:
+ Now you are in the  main function "int (main) void) after:
  ``` 
  /* Initialize all configured peripherals */
   MX_GPIO_Init();
@@ -272,22 +270,19 @@ void ECG_Setup()
   MX_SPI1_Init();
   MX_USB_HOST_Init();
   MX_USART2_UART_Init();
-
 ```
+
 These are the variables you need to set 
 ```
-
   uint16_t i = 0;
   char final_string[20];
   char time_string[20];
   double time_value = 0.0;
   HAL_Delay(300);
 ```
-And then now the most important part. Now you need to read the voltage values on the ECG.
 
 ```
-
-HAL_GPIO_WritePin(PWD_GPIO_Port, PWD_Pin, GPIO_PIN_SET); //ECG2 Powered up
+  HAL_GPIO_WritePin(PWD_GPIO_Port, PWD_Pin, GPIO_PIN_SET); //ECG2 Powered up
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_SET); //CS chip should be high by default
   HAL_GPIO_WritePin(RST_GPIO_Port, RST_Pin, GPIO_PIN_RESET); // pull RESET bit low for 18 CLK to RESET ECG device
 
@@ -299,10 +294,10 @@ HAL_GPIO_WritePin(PWD_GPIO_Port, PWD_Pin, GPIO_PIN_SET); //ECG2 Powered up
   // device is in RDATAC mode, set it to SDATAC mode to edit registers
   Send_Command(ECG2_STOP_DATA_CONT_MODE);
   HAL_Delay(1000);
-
   ECG_Setup();
+
   ```
-  The above code triggers certain GPIOS of the ECG in read mode. And a Reset pulse of the Reset pin is issued as per the guidelines of the datasheet. And finally you call the ECG_Setup funtion which sets all the operation commands to specific registers for continous read mode.
+The above code triggers certain GPIOS of the ECG in read mode. And a Reset pulse of the Reset pin is issued as per the guidelines of the datasheet. And finally you call the ECG_Setup funtion which sets all the operation commands to specific registers for continous read mode.
 
 And finally you are in the running loop. The while loop. And here you will read the voltage values from the ECG viz. channel 2 as this is the channel used for reading ECG.
 
